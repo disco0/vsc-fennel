@@ -4,6 +4,10 @@
     "description": "VS Code Fennel support",
     "version": "0.1.4",
     "publisher": "kongeor",
+    "scripts":
+    {
+        "grammar-compile:watch": "ts-node-script ./script/yaml2json.ts"
+    },
     "engines": {
         "vscode": "^1.44.0"
     },
@@ -35,5 +39,14 @@
                 "path": "./syntaxes/fennel.tmLanguage.json"
             }
         ]
+    },
+    "devDependencies": {
+        "@tsconfig/node14": "^1.0.0",
+        "@types/chalk": "^2.2.0",
+        "@types/js-yaml": "^4.0.1",
+        "@types/node": "14",
+        "chalk": "^4.1.1",
+        "chokidar": "^3.5.1",
+        "js-yaml": "^4.1.0"
     }
 }
