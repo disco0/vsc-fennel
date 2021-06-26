@@ -1,18 +1,5 @@
 # @TODO: Add meta regions for (fn ...) declarations, with docstring `string.quoted.docstring.fennel`
 #        scope.
-# @TODO: Add scopes for macro environment constructs, e.g. auto gensym notation (`variable#`)
-# @TODO: Add support for {{variables}} in build step
-#        - See TypeScript grammar build.ts for implementation:
-#           <https://github.com/microsoft/TypeScript-TmLanguage/blob/master/build/build.ts>
-# @TODO: Decide on best variable definition lookahead assertion while matching builtin/keyword-like
-#        functions—defining functions with keyword like prefixes should not match halfway through
-#        the symbol, atm the function declaration ident highlighting is broken for e.g.:
-#        |---|-error-
-#        printf
-#        ||-error-
-#        λλ
-#        |-error-
-#        λ-like
 # @TODO: Properly implement parsing of fn/macro/λ/binding-adjacent structures to properly scope
 #        parameters, symbol identifiers in declarations, etc. Did this in sublime-syntax, just
 #        reimplement here 4head
@@ -20,12 +7,12 @@
 name: Fennel
 scopeName: source.fennel
 
+# Based on fennel sublime-syntax
 variables:
   identNaive: '[a-zA-Z_][\w-]*'
   identPostfix: '[?!]'
   identPostfixOptional: '{{identPostfix}}?'
-  # @TODO: Organize some of these sets of builtin terms into subsets for more detailed scoping
-  # From fennel grammar on Sublime Text Package Control
+
   lua_coroutine_members: create|isyieldable|resume|running|status|wrap|yield
   lua_debug_members:     debug|gethook|getinfo|getlocal|getmetatable|getregistry|getupvalue|getuservalue|sethook|setlocal|setmetatable|setupvalue|setuservalue|traceback|upvalueid|upvaluejoin
   lua_io_members:        close|flush|input|lines|open|output|popen|read|stderr|stdin|stdout|tmpfile|type|write
@@ -43,25 +30,18 @@ variables:
   lua_os:        'os\.(clock|date|difftime|execute|exit|getenv|remove|rename|setlocale|time|tmpname)'
   lua_package:   'package\.(config|cpath|loaded|loadlib|path|preload|searchers|searchpath)'
   lua_string:    'string\.(byte|char|dump|find|format|gmatch|gsub|len|lower|match|packsize|pack|rep|reverse|sub|unpack|upper)'
-  lua_table:     'table\.(concat|insert|move|pack|remove|sort|unpack)'
-  lua_utf8:      'utf8\.(charpattern|char|codepoint|codes|len|offset)'
+  lua_table:     'table\.({{lua_table_members}})'
+  lua_utf8:      'utf8\.({{lua_utf8_members}})'
   lua_variables: '_G|_VERSION|{{lua_coroutine}}|coroutine|{{lua_debug}}|debug|{{lua_io}}|io|{{lua_math}}|math|{{lua_os}}|os|{{lua_package}}|package|{{lua_string}}|string|{{lua_table}}|table|{{lua_utf8}}|utf8'
   lua_functions: 'assert|collectgarbage|dofile|error|getmetatable|ipairs|loadfile|load|next|pairs|pcall|print|rawequal|rawget|rawlen|rawset|require|select|setmetatable|tonumber|tostring|type|warn|xpcall|{{lua_coroutine}}|{{lua_debug}}|{{lua_io}}|{{lua_math}}|{{lua_os}}|{{lua_package}}|{{lua_string}}|{{lua_table}}|{{lua_utf8}}'
   # -------------------------------------------------
   lua_constants: 'true|false|nil'
   lua_keywords:  'if|while|do|for'
-  # Original in keywords, moved to more appropiate name in lua but regardless they're more keywords
+  # Originally in keywords, moved to more appropiate name in lua but regardless they're more keywords
   # in fennel—e.g. `and` operator in lua is of the form `<value> and <value>`, but in fennel
-  # its `(and <value> <value>`)
+  # its `(and <value> <value>)`)
   lua_operator_logical: 'and|not|or'
   lua_operators: '{{lua_operator_logical}}\+|\-|\%|\*|\/\/|\/|\^|\.\.|\>|\<|\>=|\<=|=|\.|\:|\.\.\.'
-  # Based on fennel/src/fennel/utils.fnl:286:20
-  lua_ident_base: '[[:alpha:]_\w_]+'
-  # Non-special variable identifier (in lua)
-  # @TODO Is there a more efficient way to do this? Mostly as an excercise—I'm guessing the
-  #       resonable way to do this naturally would be to place the generic identifier capture after
-  #       the core/global variable identifier matches)
-  lua_ident: '{{lua_ident_base}}'
   # -------------------------------------------------
   namespace_accessor_chars: '\.:'
   # -------------------------------------------------
@@ -85,23 +65,21 @@ variables:
   namespaced_symbol_segment: >-
     [^{{non_symbol_start_chars}}{{namespace_accessor_chars}}]
     [^{{non_symbol_chars}}{{namespace_accessor_chars}}]+
-
   # -------------------------------------------------
-  lookahead_end_atom:         '(?=[{{non_symbol_chars}}])'
+  lookahead_end_atom:            '(?=[{{non_symbol_chars}}])'
   lookbehind_first_item_in_sexp: '(?<=[\(][\s\n]*)'
   # -------------------------------------------------
-  # fennel_threading_macros: (?:->|-\?>>|-\?>|-\>\>)(?=[{{non_symbol_chars}}])
+  # Original: (?:->|-\?>>|-\?>|-\>\>)(?=[{{non_symbol_chars}}])
   fennel_threading_macros: '(?:-[?]?[>]{1,2}){{lookahead_end_atom}}'
-  # ???
-  fennel_operators:        'not='
-  fennel_keywords:         'band|bnot|bor|bxor|doc?|dotimes|doto|each|eval-compiler|global|hashfn|import-macros|include|length|lshift|macro|macrodebug|macros|match|partial|pick-args|pick-values|println|rshift|set|tset|unpack|values|var|when|with-open'
+  # Removed `fennel_operators` and placed its contents into `fennel_keywords` (just `not=`)
+  fennel_keywords:         'band|bnot|bor|bxor|doc?|dotimes|doto|each|eval-compiler|global|hashfn|import-macros|include|length|lshift|macro|macrodebug|macros|match|not=|partial|pick-args|pick-values|println|rshift|set|tset|unpack|values|var|when|with-open'
   # -------------------------------------------------
   # Slightly too permissive
-  # @TODO Would this better be labeled string literal?
+  # @TODO Not the best variable name
   keyword:                (:):?[^:{{non_symbol_chars}}][^{{non_symbol_chars}}]*
   constant:               (?:{{lua_constants}}){{lookahead_end_atom}}
   lua_support:            (?:{{lua_operators}}|{{lua_keywords}}|{{lua_functions}}){{lookahead_end_atom}}
-  fennel_support:         (?:{{fennel_operators}}|{{fennel_keywords}}){{lookahead_end_atom}}
+  fennel_support:         (?:{{fennel_keywords}}){{lookahead_end_atom}}
   evil_octal:             '[-+]?0\d+N?{{lookahead_end_atom}}'
   sign:                   '[-+]?'
   exponent:               (?:[eE]{{sign}}\d+)
@@ -111,28 +89,8 @@ variables:
   rational:               ({{sign}})\d+(/)\d+(?=[{{non_number_chars}}])
   float:                  ({{sign}})\d+(?:(?:(\.)\d+{{exponent}}?|{{exponent}})(M)?|(M))(?=[{{non_number_chars}}])
   # -------------------------------------------------
-  # (Any format specifier except `%`, really)
+  # Any format specifier except `%`, really
   any_format_specifier: '[aAcdeEfFgGinopsuxX]'
-  # any_format_specifier_long: |-
-  #     (?x)
-  #       d | i
-  #       | u       # Unsigned decimal integer
-  #       | o       # Unsigned octal
-  #       | x       # Unsigned hexadecimal integer
-  #       | X       # Unsigned hexadecimal integer (uppercase)
-  #       | f       # Decimal floating point, lowercase
-  #       | F       # Decimal floating point, uppercase
-  #       | e       # Scientific notation (mantissa/exponent), lowercase
-  #       | E       # Scientific notation (mantissa/exponent), uppercase
-  #       | g       # Use the shortest representation: %e or %f
-  #       | G       # Use the shortest representation: %E or %F
-  #       | a       # Hexadecimal floating point, lowercase
-  #       | A       # Hexadecimal floating point, uppercase
-  #       | c       # Character
-  #       | s       # String of characters
-  #       | p       # Pointer address
-  #       | n       # Nothing printed.
-  #       | %       # A % followed by another % character will write a single % to the stream.
 
 patterns:
   - include: '#expression'
@@ -217,14 +175,15 @@ repository:
           '1': { name: constant.language.function.hashfn.fennel }
           '2': { name: variable.language.macro.hashfn.fennel }
 
-      # @TODO: Hash arguments can also be used as parts of multisyms. For instance, `#$.foo` is a
-      #        function which will return the value of the “foo” key in its first argument.
+
       - match: '(#)([a-zA-Z_][\w]*(?:-[a-zA-Z_][\w]*)*)'
         name:  meta.expression.macro.hashfn.fennel
         captures:
           '1': { name: support.function.hashfn.fennel }
-          # TODO use :literal scpoe
           '2': { name: variable.language.macro.hashfn.fennel }
+        comment: >-
+          @TODO: Hash arguments can also be used as parts of multisyms. For instance, `#$.foo` is
+                 a function which will return the value of the “foo” key in its first argument.
 
       - name:  meta.expression.macro.hashfn.fennel
         begin: '(#)(\()'
@@ -237,14 +196,17 @@ repository:
           '0': { name: keyword.special.macro.hashfn.close.fennel }
           '1': { name: punctuation.paren.close.fennel }
         patterns:
-          - match: '[\$][0-9](?:\.{{atom}})'
+          - match: '[\$][0-9](?:\.{{atom}})*'
             name:  variable.language.macro.hashfn.fennel
+            comment: >-
+              @TODO: Capturing namespaced tokens and their period delimiters (not just here)
           - match: '[\$][.]{3}{{lookahead_end_atom}}'
             name:  variable.language.macro.hashfn.fennel
-
           - include: '#expression'
 
   unquoted:
+    comment: >-
+      @TODO: Handling (unquote ...)  form
     patterns:
       - include: '#unquoted-atom'
       - include: '#unquoted-sexp'
@@ -257,13 +219,6 @@ repository:
     end: (?=[{{non_symbol_chars}}])
     patterns:
       - include: '#symbol-like'
-    # begin: ([,])(?={{atom}}|[\[(])
-    # beginCaptures:
-    #   '1': { name: constant.language.unquote.fennel }
-    # end: '(?={{non_symbol_chars}}|[)\]])'
-    # patterns:
-    #   - include: '#comment'
-    #   - include: '#expression'
 
   unquoted-sexp:
     patterns:
@@ -285,7 +240,7 @@ repository:
         beginCaptures:
           '1': { name: constant.language.unquote.fennel }
           '2': { name: punctuation.paren.open.fennel }
-        end:   \)
+        end:   '\)'
         endCaptures:
           '0': { name: punctuation.paren.close.fennel }
         comment: >-
@@ -293,32 +248,23 @@ repository:
         patterns:
           - include: '#expression'
 
-  # @TODO: Originally wrote quoted-sexp repository but need to add it for any syntactical construct,
-  #        just merge them and check to enter a meta scope with a lookahead for backtick?
-  #        (Same for vectors, just adding to quoted-sexp)
-  # @TODO: Check if ` and ' are functionally identical
   quoted-atom:
+    comment: >-
+      @TODO: Handling (quote ...)  form
     name: meta.symbol.quoted.fennel
-    begin: ([`])(?={{atom}}) # |[\[(])
+    begin: (['`])(?={{atom}}) # |[\[(])
     beginCaptures:
       '1': { name: constant.language.quote.fennel }
     end: (?=[{{non_symbol_chars}}])
     patterns:
       - include: '#symbol-like'
-    # name: meta.symbol.quoted.fennel
-    # begin: ([`])(?={{atom}}|[\[(])
-    # beginCaptures:
-    #   '1': { name: constant.language.quote.fennel }
-    # end: '(?={{non_symbol_chars}}|[)\]])'
-    # patterns:
-    #   - include: '#comment'
-    #   - include: '#unquoted'
-    #   - include: '#expression'
 
   quoted-sexp:
+    comment: >-
+      @TODO: Handling (quote ...)  form
     patterns:
       - name:  meta.vector.quoted.fennel
-        begin: '(`)(\[)'
+        begin: (['`])(\[)
         beginCaptures:
           '1': { name: constant.language.quote.fennel }
           '2': { name: punctuation.vector.open.fennel }
@@ -333,7 +279,7 @@ repository:
           - include: '#expression'
 
       - name:  meta.expression.quoted.fennel
-        begin: (`)(\()
+        begin: ([`'])(\()
         beginCaptures:
           '1': { name: constant.language.quote.fennel }
           '2': { name: punctuation.paren.open.fennel }
@@ -415,21 +361,11 @@ repository:
         match: '(?:[-]\>(?:\>)?){{lookahead_end_atom}}'
       - name:  keyword.special.fennel
         match: '(?:[-]\?\>(?:\>)?){{lookahead_end_atom}}'
-      # - name: keyword.special.fennel
-      #   match: '(?:\#|\%|\+|\*|[\?][\.]|[\.]{1,2}|[\/]{1,2}|[:]|[<][=]?|[=]|[>][=]?|[\^])(?=[ \{\(\[])' # lookahead-assert
-      # - name: keyword.special.fennel
-      #   match: '-(?![ \(\[\{)])'
-      # - name: keyword.special.fennel
-      #   match: '(?:not=)(?=[ \{\(\[])' # lookahead-assert
       - name: keyword.special.fennel
         match: '(set-forcibly!){{lookahead_end_atom}}'
       - name: keyword.special.fennel
         match: >-
           \b(?:and|band|bnot|bor|bxor|collect|comment|do|doc|doto|each|eval-compiler|for|global|hashfn|icollect|if|import-macros|include|lambda|length|let|local|lshift|lua|macro|macrodebug|macros|match(?:-[a-zA-Z]+\w*)*|not=?|or|partial|pick-args|pick-values|quote|require-macros|rshift|set|tset|values|var|when|while|with-open){{lookahead_end_atom}}
-        comment: >-
-          @TODO: Ideally this catch-all for builtins should never match a keyword that should start
-          a new grammar scope (e.g. λ, fn, let), and eventually have the other values in here split
-          fully into different submatches.
       - name: keyword.control.fennel
         match: '\b(?:fn){{lookahead_end_atom}}'
       - name: keyword.special.fennel
@@ -549,91 +485,9 @@ repository:
       - match: '\b(_(?:VERSION|ENV|G))(?=[^#\-])'
         name: constant.language.fennel
 
-  #region Format Specifier Notes
-  # - Programming in Lua:
-  #     The format string has rules similar to those of the printf function of standard C: It is
-  #   composed of regular text and directives, which control where and how each argument must be
-  #   placed in the formatted string.
-  #
-  # - Lua Reference:
-  #     The format string follows the same rules as the printf family of standard C functions. The
-  #   only differences are that the options/modifiers `*`, `l`, `L`, `n`, `p`, and `h` are not
-  #   supported and that there is an extra option, `q`.
-  #
-  # - cplusplus.com
-  #     A format specifier follows this prototype: [see compatibility note below]
-  #       `%[flags][width][.precision][length]specifier`
-  #
-  #   Reference Table:
-  #      d or i  Signed decimal integer                                                    392
-  #      u       Unsigned decimal integer                                                  7235
-  #      o       Unsigned octal                                                            610
-  #      x       Unsigned hexadecimal integer                                              7fa
-  #      X       Unsigned hexadecimal integer (uppercase)                                  7FA
-  #      f       Decimal floating point, lowercase                                         392.65
-  #      F       Decimal floating point, uppercase                                         392.65
-  #      e       Scientific notation (mantissa/exponent), lowercase                        3.9265e+2
-  #      E       Scientific notation (mantissa/exponent), uppercase                        3.9265E+2
-  #      g       Use the shortest representation: %e or %f                                 392.65
-  #      G       Use the shortest representation: %E or %F                                 392.65
-  #      a       Hexadecimal floating point, lowercase                                     -0xc.90fep-2
-  #      A       Hexadecimal floating point, uppercase                                     -0XC.90FEP-2
-  #      c       Character                                                                 a
-  #      s       String of characters                                                      sample
-  #      %       A % followed by another % character will write a single % to the stream.  %
-  #    Unused by Lua:
-  #      p       Pointer address                                                           b8000000
-  #      n       Nothing printed. The corresponding argument must be a pointer to a
-  #              signed int. The number of characters written so far is stored in the
-  #              pointed location.
-  #
-  #   Flags:
-  #      z-        Left-justify within the given field width; Right justification is the default (see
-  #               width sub-specifier).
-  #      +        Forces to preceed the result with a plus or minus sign (+ or -) even for positive
-  #               numbers. By default, only negative numbers are preceded with a - sign.
-  #      (space)  If no sign is going to be written, a blank space is inserted before the value.
-  #      #        Used with o, x or X specifiers the value is preceeded with 0, 0x or 0X respectively
-  #               for values different than zero. Used with a, A, e, E, f, F, g or G it forces the
-  #               written output to contain a decimal point even if no more digits follow.
-  #               By default, if no digits follow, no decimal point is written.
-  #      0        Left-pads the number with zeroes (0) instead of spaces when padding is specified
-  #               (see width sub-specifier).
-  #   Width:
-  #   ... <see cplusplus docs>
-  #
-  #   Precision (.precision):
-  #   ... <see cplusplus docs>
-  #
-  #   Specifiers:
-  #      Length  d i            u o x X                 f F e E g G a A  c       s         p      n
-  #      ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-  #      (none)  int            unsigned int            double           int     char*     void*  int*
-  #      j       intmax_t       uintmax_t                                                         intmax_t*
-  #      z       size_t         size_t                                                            size_t*
-  #      t       ptrdiff_t      ptrdiff_t                                                         ptrdiff_t*
-  #     Unused by Lua:
-  #      hh      signed char    unsigned char                                                     signed char*
-  #      h       short int      unsigned short int                                                short int*
-  #      l       long int       unsigned long int                        wint_t  wchar_t*         long int*
-  #      ll      long long int  unsigned long long int                                            long long int*
-  #      L                                              long double
-  #
-  #   Examples:
-  #     printf ("Characters: %c %c \n", 'a', 65);
-  #     printf ("Decimals: %d %ld\n", 1977, 650000L);
-  #     printf ("Preceding with blanks: %10d \n", 1977);
-  #     printf ("Preceding with zeros: %010d \n", 1977);
-  #     printf ("Some different radices: %d %x %o %#x %#o \n", 100, 100, 100, 100, 100);
-  #     printf ("floats: %4.2f %+.0e %E \n", 3.1416, 3.1416, 3.1416);
-  #     printf ("Width trick: %*d \n", 5, 10);
-  #     printf ("%s \n", "A string");
-  #
-  #endregion Format Specifier Notes
-
-  # @TODO Should placeholder scopes be lua or fennel?
   string-format-expn:
-    # Quick solutions for the interim
+    comment: >-
+      Slightly too permissive—leaving it as-is
     patterns:
       # First test with matching modifiers
       # Flag capture does not assert no repeats—will break
@@ -646,58 +500,19 @@ repository:
           '4': { name: punctuation.format.placeholder.dot.lua }
           '5': { name: constant.other.numeric.integer.lua }
           '6': { name: support.constant.string.format.lua }
+
+      # Just going to leave these here for now as basic fallbacks
       - match: (%)(i)
         captures:
          '0': { name: constant.other.placeholder.number.lua }
+         '1': { name: punctuation.format.delimiter.lua }
+         '2': { name: support.constant.string.format.fennel }
+
       - match: (%)(q)
         captures:
          '0': { name: constant.other.placeholder.quoted.lua }
-        #  '1': { name: punctuation.format.delimiter.fennel }
-        #  '2': { name: support.constant.string.format.fennel }
-
-      #region Generic Full Match
-      # (Don't actually use this yet)
-      # match: |-
-      #   (?x)
-      #     (?:d|i)   # Signed decimal integer                                                    392
-      #     | u       # Unsigned decimal integer                                                  7235
-      #     | o       # Unsigned octal                                                            610
-      #     | x       # Unsigned hexadecimal integer                                              7fa
-      #     | X       # Unsigned hexadecimal integer (uppercase)                                  7FA
-      #     | f       # Decimal floating point, lowercase                                         392.65
-      #     | F       # Decimal floating point, uppercase                                         392.65
-      #     | e       # Scientific notation (mantissa/exponent), lowercase                        3.9265e+2
-      #     | E       # Scientific notation (mantissa/exponent), uppercase                        3.9265E+2
-      #     | g       # Use the shortest representation: %e or %f                                 392.65
-      #     | G       # Use the shortest representation: %E or %F                                 392.65
-      #     | a       # Hexadecimal floating point, lowercase                                     -0xc.90fep-2
-      #     | A       # Hexadecimal floating point, uppercase                                     -0XC.90FEP-2
-      #     | c       # Character                                                                 a
-      #     | s       # String of characters                                                      sample
-      #     | p       # Pointer address                                                           b8000000
-      #     | n       # Nothing printed.
-      #     | %       # A % followed by another % character will write a single % to the stream.  %
-
-      # Generic Full Matcher (not 100% on the format specifier assertion)
-      # DO NOT USE COMPLETELY CURSED
-      # - match: |-
-      #     (?x)
-      #         (%)
-      #         # Cursed
-      #         ( (?: ([ 0+#-]) (?<= % (?: (?!\3) [ 0+#-] ){0,5}  ) ){0,5} )?
-      #         (?:
-      #           ([1-9]*\d*)
-      #           (\.?[1-9]*\d*)
-      #         )?
-      #         ([aAcdeEfFgGinopsuxX])
-      #   captures:
-      #     '0': { name: constant.other.placeholder.string.lua }
-      #     '1': { name: punctuation.format.delimiter.lua }
-      #     '2': { name: constant.other.placeholder.modifier.flags.lua }
-      #     '4': { name: constant.other.numeric.integer.lua }
-      #     '5': { name: constant.other.numeric.integer.lua }
-      #     '6': { name: support.constant.string.format.lua }
-      #endregion Generic Full Match
+         '1': { name: punctuation.format.delimiter.lua }
+         '2': { name: support.constant.string.format.fennel }
 
   # @TODO Now that the base string-dquote matches format strings, either create a separate
   #       double quoted form match for docstrings, or a string-dquote repo that doesn't capture
@@ -735,8 +550,7 @@ repository:
       - include: '#string-doc'
       - include: '#string-dquote'
 
-  # @TODO Properly scope :string style literals if below solitary keyword pattern isn't for them,
-  #       add a separate pattern/repo for them with aforementioned relevant scope
+  # @TODO: Same as the `keywords` variable lol
   keywords:
     patterns:
       - name: variable.language.vararg.fennel
@@ -777,9 +591,8 @@ repository:
           '2': { name: punctuation.variable.macro.generated.fennel }
       - name: entity.name.function.symbol.fennel
         match: '(?:\w+(?:[.-]\w+)+[?!]?){{lookahead_end_atom}}'
-      - match: '(?:(_)|(&\w*)){{lookahead_end_atom}}'
-        name:  variable.parameter.special.fennel
-        # match: \w+
+      - name:  variable.parameter.special.fennel
+        match: '(?:(_)|(&\w*)){{lookahead_end_atom}}'
       - name: variable.other.optional.fennel
         match: '[?]{{identNaive}}'
       - name: variable.other.fennel
