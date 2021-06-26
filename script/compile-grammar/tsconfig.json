@@ -13,13 +13,12 @@
     },
     "ts-node":
     {
-        "files":        true,
-        "pretty":       true,
-        "emit":         false,
-        "ignoreDiagnostics": [
-
-        ],
-        "preferTsExts": true,
+        "files":         true,
+        "pretty":        true,
+        "emit":          false,
+        "transpileOnly": true,
+        "preferTsExts":  true,
+        "ignoreDiagnostics": [ ],
         "compilerOptions":
         {
             "types":
