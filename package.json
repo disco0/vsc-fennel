@@ -137,6 +137,6 @@
         "jsonc-require": "^1.0.1",
         "tree-sitter-fennel": "github:disco0/tree-sitter-fennel",
         "web-tree-sitter": "^0.19.4",
-        "yaml-tm-convert": "github:disco0/yaml-tmLanguage-convert"
+        "yaml-tm-convert": "github:disco0/yaml-tmLanguage-convert#v1.0"
     }
 }
