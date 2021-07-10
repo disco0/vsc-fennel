@@ -1,0 +1,219 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Fennel",
+	"patterns": [
+		{
+			"include": "#expression"
+		}
+	],
+	"repository": {
+		"expression": {
+			"patterns": [
+				{
+					"include": "#comment"
+				},
+				{
+					"include": "#constants"
+				},
+				{
+					"include": "#sexp-or-quoted-sexp"
+				},
+				{
+					"include": "#table"
+				},
+				{
+					"include": "#vector"
+				},
+				{
+					"include": "#keywords"
+				},
+				{
+					"include": "#special"
+				},
+				{
+					"include": "#lua"
+				},
+				{
+					"include": "#strings"
+				},
+				{
+					"include": "#methods"
+				},
+				{
+					"include": "#symbols"
+				}
+			]
+		},
+		"constants": {
+			"patterns": [
+				{
+					"match": "nil",
+					"name": "constant.language.nil.fennel"
+				},
+				{
+					"match": "false|true",
+					"name": "constant.language.boolean.fennel"
+				},
+				{
+					"match": "(-?\\d+\\.\\d+([eE][+-]?\\d+)?)",
+					"name": "constant.numeric.double.fennel"
+				},
+				{
+					"match": "(-?\\d+)",
+					"name": "constant.numeric.integer.fennel"
+				}
+			]
+		},
+		"comment": {
+			"patterns": [{
+				"name": "comment.line.semicolon.fennel",
+				"begin": ";",
+				"end": "$"
+			}]
+		},
+        "quoted-sexp": {
+            "begin": "(`)(\\()",
+            "beginCaptures": {
+                "1": { "name": "constant.language.quoted.fennel" },
+                "2": { "name": "punctuation.paren.open.fennel"   }
+            },
+            "end": "\\)",
+            "endCaptures": {
+                "0": { "name": "punctuation.paren.close.fennel" }
+            },
+            "name": "meta.expression.quoted.fennel",
+            "comment": "@TODO: Add quoted expression body for ,*",
+            "patterns": [{ "include": "#expression" }]
+        },
+		"sexp": {
+            "begin": "\\(",
+            "end": "\\)",
+            "beginCaptures": {
+                "0": { "name": "punctuation.paren.open.fennel"}
+            },
+            "endCaptures": {
+                "0": { "name": "punctuation.paren.close.fennel"}
+            },
+            "name": "sexp.fennel",
+            "patterns": [{ "include": "#expression" }]
+        },
+        "sexp-or-quoted-sexp": {
+            "patterns": [
+                { "include": "#quoted-sexp" },
+                { "include": "#sexp"        }
+            ]
+        },
+		"table": {
+			"begin": "\\{",
+			"end": "\\}",
+			"beginCaptures": {
+				"0": { "name": "punctuation.table.bracket.open.fennel"}
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.table.bracket.close.fennel"}
+			},
+			"name": "table.fennel",
+			"patterns": [{ "include": "#expression" }]
+		},
+		"vector": {
+			"begin": "\\[",
+			"end": "\\]",
+			"beginCaptures": {
+				"0": { "name": "punctuation.vector.bracket.open.fennel"}
+			},
+			"endCaptures": {
+				"0": { "name": "punctuation.vector.bracket.close.fennel"}
+			},
+			"name": "meta.vector.fennel",
+			"patterns": [{ "include": "#expression" }]
+		},
+		"special": {
+			"patterns": [
+				{
+					"name": "keyword.special.fennel",
+					"match": "\\#|\\%|\\+|\\*|\\?\\.|(\\.)?\\.|(\\/)?\\/|:|<=?|=|>=?|\\^"
+				},
+				{
+					"name": "keyword.special.fennel",
+					"match": "([-]\\>(?:\\>)?)"
+				},
+				{
+					"name": "keyword.special.fennel",
+					"match": "([-]\\?\\>(?:\\>)?)"
+				},
+				{
+					"name": "keyword.special.fennel",
+					"match": "-(?![\\w\\(\\)])"
+				},
+				{ "name": "keyword.special.fennel", "match": "not=" },
+				{ "name": "keyword.special.fennel", "match": "set-forcibly!" },
+				{
+					"name": "keyword.special.fennel",
+					"match": "\\b(and|band|bnot|bor|bxor|collect|comment|do|doc|doto|each|eval-compiler|for|global|hashfn|icollect|if|import-macros|include|lambda|length|let|local|lshift|lua|macro|macrodebug|macros|match(?:-[a-zA-Z]+\\w*)*|not=?|or|partial|pick-args|pick-values|quote|require-macros|rshift|set|tset|values|var|when|while|with-open)\\b"
+				},
+				{
+					"name": "keyword.control.fennel",
+					"match": "\\b(fn)\\b"
+				},
+				{ "name": "keyword.special.fennel", "match": "~=" },
+				{ "name": "keyword.special.fennel", "match": "λ" }
+		]
+		},
+		"lua": {
+			"patterns": [
+				{
+					"name": "support.function.fennel",
+					"match": "\\b(assert|collectgarbage|dofile|error|getmetatable|ipairs|load|loadfile|next|pairs|pcall|print|rawequal|rawget|rawlen|rawset|require|select|setmetatable|tonumber|tostring|type|xpcall)(?![-])"
+				},
+				{
+					"name": "support.function.library.fennel",
+					"match": "\\b(coroutine(?:\\.(?:create|isyieldable|resume|running|status|wrap|yield)|(?![\\w+\\.]))|debug(?:\\.(?:debug|gethook|getinfo|getlocal|getmetatable|getregistry|getupvalue|getuservalue|sethook|setlocal|setmetatable|setupvalue|setuservalue|traceback|upvalueid|upvaluejoin)|(?![\\w+\\.]))|io(?:\\.(?:close|flush|input|lines|open|output|popen|read|stderr|stdin|stdout|tmpfile|type|write)|(?![\\w+\\.]))|math(?:\\.(?:abs|acos|asin|atan|ceil|cos|deg|exp|floor|fmod|huge|log|max|maxinteger|min|mininteger|modf|pi|rad|random|randomseed|sin|sqrt|tan|tointeger|type|ult)|(?![\\w+\\.]))|os(?:\\.(?:clock|date|difftime|execute|exit|getenv|remove|rename|setlocale|time|tmpname)|(?![\\w+\\.]))|package(?:\\.(?:config|cpath|loaded|loadlib|path|preload|searchers|searchpath)|(?![\\w+\\.]))|string(?:\\.(?:byte|char|dump|find|format|gmatch|gsub|len|lower|match|pack|packsize|rep|reverse|sub|unpack|upper)|(?![\\w+\\.]))|table(?:\\.(?:concat|insert|move|pack|remove|sort|unpack)|(?![\\w+\\.]))|utf8(?:\\.(?:char|charpattern|codepoint|codes|len|offset)|(?![\\w+\\.])))\\b"
+				},
+				{
+					"match": "\\b(_(?:VERSION|ENV|G))\\b",
+					"name": "constant.language.fennel"
+				}
+		]
+		},
+		"strings": {
+			"name": "string.quoted.double.fennel",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.fennel",
+					"match": "\\\\."
+				}
+			]
+		},
+		"keywords": {
+			"name": "constant.keyword.fennel",
+			"match": ":[^ \\)]+"
+		},
+		"methods": {
+			"patterns": [
+				{
+					"name": "entity.name.function.method.fennel",
+					"match": "\\w+[:]\\w+"
+				}
+			]
+		},
+		"symbols": {
+			"patterns": [
+				{
+					"name": "entity.name.function.symbol.fennel",
+					"match": "(?:(?:list|(?:gen)?sym)[?]?|\\w+(?:[.-]\\w+)+[?!]?)(?=\\b|$|[ ])"
+				},
+				{
+					"name": "variable.other.fennel",
+					"match": "\\w+"
+				},
+				{
+					"name": "variable.other.optional.fennel",
+					"match": "[?]?\\w+"
+				}
+			]
+		}
+	},
+	"scopeName": "source.fnl"
+}

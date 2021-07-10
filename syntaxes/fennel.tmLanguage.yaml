@@ -191,10 +191,10 @@ repository:
         beginCaptures:
           '0': { name: support.function.macro.hashfn.fennel      }
           '1': { name: keyword.special.macro.hashfn.begin.fennel }
-          '2': { name: punctuation.paren.open.fennel             }
+          '2': { name: punctuation.section.parens.begin.fennel             }
         endCaptures:
           '0': { name: keyword.special.macro.hashfn.close.fennel }
-          '1': { name: punctuation.paren.close.fennel }
+          '1': { name: punctuation.section.parens.end.fennel }
         patterns:
           - match: '[\$][0-9](?:\.{{atom}})*'
             name:  variable.language.macro.hashfn.fennel
@@ -202,6 +202,142 @@ repository:
               @TODO: Capturing namespaced tokens and their period delimiters (not just here)
           - match: '[\$][.]{3}{{lookahead_end_atom}}'
             name:  variable.language.macro.hashfn.fennel
+          - include: '#expression'
+
+  parameters:
+    patterns:
+      - name:  variable.parameter.special.vararg.fennel
+        match: '\.{3}{{lookahead_end_atom}}'
+
+      - name:  variable.parameter.special.fennel
+        match: '(?:(_)|(&\w*)){{lookahead_end_atom}}'
+
+      - name:  variable.parameter.optional.fennel
+        match: '[?]{{atom}}'
+
+      - name:  variable.parameter.fennel
+        match: '[^?\s\n\(\)\[\]\{\}:#,\.][^\s\n\(\)\[\]\{\}:#,]*'
+
+
+  declarations:
+    patterns:
+      # (fn ...)
+      - begin: '(\()[\s\t]*((fn))[\s\t]+(?:({{symbol}})[\s\t]+)?'
+        beginCaptures:
+          '0': { name: meta.function.fennel }
+          '1': { name: punctuation.section.parens.begin.fennel }
+          '2': { name: storage.type.function.fennel }
+          '3': { name: keyword.declaration.function.fennel }
+          '4': { name: entity.name.function.fennel }
+        end: '[\)]'
+        endCaptures:
+          '0': { name: punctuation.section.parens.end.fennel }
+
+        patterns:
+          - name: meta.function.parameters.fennel
+            begin: '[\[]'
+            beginCaptures:
+              '0': { name: punctuation.section.brackets.begin.fennel }
+            end:   '([\]])\s*'
+            endCaptures:
+              '1': { name: punctuation.section.brackets.end.fennel }
+            patterns:
+              - include: '#parameters'
+
+          ## @NOTE Docstring highlighting now done with tree-sitter
+          # - begin: (?=\s*"(?:["]{2})?)
+          #   end: $
+          #   name: meta.docstring-lookahead
+          #   patterns:
+          #     - name: string.docstring.fennel
+          #       contentName: meta.block.documentation.fennel
+          #       begin: (["]{3}|["])
+          #       beginCaptures:
+          #         '1': { name: punctuation.definition.string.docstring.begin.fennel }
+          #       end:   '(\1)'
+          #       endCaptures:
+          #         '1': { name: punctuation.definition.string.docstring.end.fennel }
+
+          # - begin: (?=[^"])
+          #   end:   (?=\))
+          #   patterns:
+
+          - include: '#expression'
+
+      # (λ ...)
+      - begin: '(\()[\s\t]*((λ))[\s\t]+(?:({{symbol}})[\s\t]+)?'
+        beginCaptures:
+          '0': { name: meta.function.lambda.fennel }
+          '1': { name: punctuation.section.parens.begin.fennel }
+          '2': { name: storage.type.function.lambda.fennel }
+          '3': { name: keyword.declaration.function.lambda.fennel }
+          '4': { name: entity.name.function.lambda.fennel }
+        end: '[\)]'
+        endCaptures:
+          '0': { name: punctuation.section.parens.end.fennel }
+
+        patterns:
+          - name: meta.lambda.parameters.fennel
+            begin: '[\[]'
+            beginCaptures:
+              '0': { name: punctuation.section.brackets.begin.fennel }
+            end:   '[\]]'
+            endCaptures:
+              '0': { name: punctuation.section.brackets.end.fennel }
+            patterns:
+              - include: '#parameters'
+
+          - include: '#expression'
+
+        comment: >-
+          Expecting this to break on multiline definitions breaking after `λ` or before params.
+
+          @TODO: Reference another grammar for how to build this without matching as much initially
+
+      # (macro ...)
+      - begin: '(\()[\s\t]*((macro))[\s\t]+(?:({{symbol}})[\s\t]+)?'
+        beginCaptures:
+          '0': { name: meta.macro.fennel }
+          '1': { name: punctuation.section.parens.begin.fennel }
+          '2': { name: storage.type.macro.fennel }
+          '3': { name: keyword.declaration.macro.fennel }
+          '4': { name: entity.name.macro.fennel }
+        end: '[\)]'
+        endCaptures:
+          '0': { name: punctuation.section.parens.end.fennel }
+
+        patterns:
+          - name: meta.macro.parameters.fennel
+            begin: '[\[]'
+            beginCaptures:
+              '0': { name: punctuation.section.brackets.begin.fennel }
+            end:   '[\]]'
+            endCaptures:
+              '0': { name: punctuation.section.brackets.end.fennel }
+            patterns:
+              - include: '#parameters'
+
+          - include: '#expression'
+
+        comment: >-
+          Expecting this to break on multiline definitions breaking after `λ` or before params.
+
+          @TODO: Reference another grammar for how to build this without matching as much initially
+
+  sexp:
+    patterns:
+      - include: '#declarations'
+
+      - name: sexp.fennel
+        begin: \(
+        end:   \)
+        beginCaptures:
+          '0':
+            name: punctuation.section.parens.begin.fennel
+        endCaptures:
+          '0':
+            name: punctuation.section.parens.end.fennel
+        patterns:
           - include: '#expression'
 
   unquoted:
@@ -226,10 +362,10 @@ repository:
         begin: '(,)(\[)'
         beginCaptures:
           '1': { name: constant.language.unquote.fennel }
-          '2': { name: punctuation.vector.open.fennel }
+          '2': { name: punctuation.section.brackets.begin.fennel }
         end:   '\]'
         endCaptures:
-          '0': { name: punctuation.vector.close.fennel }
+          '0': { name: punctuation.section.brackets.end.fennel }
         comment: >-
             @TODO: Decide on best locations to handle capturing unquoted forms
         patterns:
@@ -239,10 +375,10 @@ repository:
         begin: (,)(\()
         beginCaptures:
           '1': { name: constant.language.unquote.fennel }
-          '2': { name: punctuation.paren.open.fennel }
+          '2': { name: punctuation.section.parens.begin.fennel }
         end:   '\)'
         endCaptures:
-          '0': { name: punctuation.paren.close.fennel }
+          '0': { name: punctuation.section.parens.end.fennel }
         comment: >-
             @TODO: Decide on best locations to handle capturing unquoted forms
         patterns:
@@ -267,10 +403,10 @@ repository:
         begin: (['`])(\[)
         beginCaptures:
           '1': { name: constant.language.quote.fennel }
-          '2': { name: punctuation.vector.open.fennel }
+          '2': { name: punctuation.section.brackets.begin.fennel }
         end:   '\]'
         endCaptures:
-          '0': { name: punctuation.vector.close.fennel }
+          '0': { name: punctuation.section.brackets.end.fennel }
         comment: >-
             @TODO: Decide on best locations to handle capturing unquoted forms
         patterns:
@@ -282,36 +418,15 @@ repository:
         begin: ([`'])(\()
         beginCaptures:
           '1': { name: constant.language.quote.fennel }
-          '2': { name: punctuation.paren.open.fennel }
+          '2': { name: punctuation.section.parens.begin.fennel }
         end:   \)
         endCaptures:
-          '0': { name: punctuation.paren.close.fennel }
+          '0': { name: punctuation.section.parens.end.fennel }
         comment: >-
             @TODO: Decide on best locations to handle capturing unquoted forms
         patterns:
           - include: '#comment'
           - include: '#unquoted'
-          - include: '#expression'
-
-  sexp:
-    patterns:
-      # # @TODO Place declaration entries here—check via lookahead, and push into defintion repository
-      # - begin: '(\()[\s\t]*((fn))'
-      #   beginCaptures:
-      #     '1': { name: }
-      #     '2': { name: storage.type.function keyword.declaration.function  }
-      #     '2': { name: keyword.declaration.function  }
-
-      - name: sexp.fennel
-        begin: \(
-        end:   \)
-        beginCaptures:
-          '0':
-            name: punctuation.paren.open.fennel
-        endCaptures:
-          '0':
-            name: punctuation.paren.close.fennel
-        patterns:
           - include: '#expression'
 
   table:
@@ -333,10 +448,10 @@ repository:
     end:   '\]'
     beginCaptures:
       '0':
-        name: punctuation.vector.bracket.open.fennel
+        name: punctuation.section.brackets.begin.fennel
     endCaptures:
       '0':
-        name: punctuation.vector.bracket.close.fennel
+        name: punctuation.section.brackets.end.fennel
     patterns:
       - include: '#expression'
 
@@ -533,17 +648,19 @@ repository:
       - name: constant.character.escape.fennel
         match: \\.
 
-  string-doc:
-    name: string.docstring.fennel
-    contentName: meta.block.documentation.fennel
-    begin: '([\"]{3})'
-    beginCaptures:
-      '1':
-        name: punctuation.definition.string.docstring.begin.fennel
-    end:   '([\"]{3})'
-    endCaptures:
-      '1':
-        name: punctuation.definition.string.docstring.end.fennel
+
+  ## @NOTE Docstring highlighting now done with tree-sitter
+  # string-doc:
+  #   name: string.docstring.fennel
+  #   contentName: meta.block.documentation.fennel
+  #   begin: '([\"]{3})'
+  #   beginCaptures:
+  #     '1':
+  #       name: punctuation.definition.string.docstring.begin.fennel
+  #   end:   '([\"]{3})'
+  #   endCaptures:
+  #     '1':
+  #       name: punctuation.definition.string.docstring.end.fennel
 
   strings:
     patterns:
@@ -571,15 +688,16 @@ repository:
   methods:
     patterns:
       - name: entity.name.function.method.fennel
-        match: '(\w+)([:])([^{{non_symbol_chars}}]+{{identPostfixOptional}}{{lookahead_end_atom}})'
+        match: '((\w+)([:])([^{{non_symbol_chars}}]+{{identPostfixOptional}}{{lookahead_end_atom}}))'
         captures:
           # If : accessor is being used, assume function call
           # @TODO: Handle detecting actually being called with lookbehind, and add a begin/end with
           #        a meta.method/function.call scope
-          '0': { name: variable.function.fennel }
-          '1': { name: variable.fennel }
-          '2': { name: punctuation.method.fennel }
-          '3': { name: variable.member.fennel }
+          '0': { name: meta.function-call.fennel }
+          '1': { name: variable.function.fennel }
+          '2': { name: variable.fennel }
+          '3': { name: punctuation.method.fennel }
+          '4': { name: variable.member.fennel }
         # match: '\w+[:][^\s\n\(\[\{\)\]\}:#.,]+{{identPostfixOptional}}{{lookahead_end_atom}}'
 
   symbols:
@@ -590,13 +708,18 @@ repository:
           '1': { name: entity.name.variable.macro.generated.fennel }
           '2': { name: punctuation.variable.macro.generated.fennel }
       - name: entity.name.function.symbol.fennel
-        match: '(?:\w+(?:[.-]\w+)+[?!]?){{lookahead_end_atom}}'
+        match: '(?<=[\(][\s]*)(?:\w+(?:[.-]\w+)+[?!]?){{lookahead_end_atom}}'
+        comment: 'Workround until proper matching of first atom in sexprs added.'
+
+        #region Copied To `parameters` repository
       - name:  variable.parameter.special.fennel
         match: '(?:(_)|(&\w*)){{lookahead_end_atom}}'
       - name: variable.other.optional.fennel
         match: '[?]{{identNaive}}'
       - name: variable.other.fennel
-        match: '[^\s\n\(\)\[\]\{\}:#,\.][^\s\n\(\)\[\]\{\}:#,]*'
+        match: '[^?\s\n\(\)\[\]\{\}:#,\.][^\s\n\(\)\[\]\{\}:#,]*'
+        #endregion Copied To `parameters` repository
+
       # Catch all for pseudo keyword like function symbols (jank)
       - name: keyword.special.other.fennel
         match: '(?:(?:fn|λ|macro(?:s|debug)|[a-z]*print[a-z])[^\s\n\(\[\{\)\]\}:#\.\-,]+|[λ+~=*/\\\$][λ~+=*/\\\-\$]*)'

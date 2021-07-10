@@ -187,7 +187,7 @@
                             "name": "keyword.special.macro.hashfn.begin.fennel"
                         },
                         "2": {
-                            "name": "punctuation.paren.open.fennel"
+                            "name": "punctuation.section.parens.begin.fennel"
                         }
                     },
                     "endCaptures": {
@@ -195,7 +195,7 @@
                             "name": "keyword.special.macro.hashfn.close.fennel"
                         },
                         "1": {
-                            "name": "punctuation.paren.close.fennel"
+                            "name": "punctuation.section.parens.end.fennel"
                         }
                     },
                     "patterns": [
@@ -208,6 +208,212 @@
                             "match": "[\\$][.]{3}(?=[\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\])",
                             "name": "variable.language.macro.hashfn.fennel"
                         },
+                        {
+                            "include": "#expression"
+                        }
+                    ]
+                }
+            ]
+        },
+        "parameters": {
+            "patterns": [
+                {
+                    "name": "variable.parameter.special.vararg.fennel",
+                    "match": "\\.{3}(?=[\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\])"
+                },
+                {
+                    "name": "variable.parameter.special.fennel",
+                    "match": "(?:(_)|(&\\w*))(?=[\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\])"
+                },
+                {
+                    "name": "variable.parameter.optional.fennel",
+                    "match": "[?][^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\]+"
+                },
+                {
+                    "name": "variable.parameter.fennel",
+                    "match": "[^?\\s\\n\\(\\)\\[\\]\\{\\}:#,\\.][^\\s\\n\\(\\)\\[\\]\\{\\}:#,]*"
+                }
+            ]
+        },
+        "declarations": {
+            "patterns": [
+                {
+                    "begin": "(\\()[\\s\\t]*((fn))[\\s\\t]+(?:((?:/|[^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\\\d#':][^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\]*))[\\s\\t]+)?",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "meta.function.fennel"
+                        },
+                        "1": {
+                            "name": "punctuation.section.parens.begin.fennel"
+                        },
+                        "2": {
+                            "name": "storage.type.function.fennel"
+                        },
+                        "3": {
+                            "name": "keyword.declaration.function.fennel"
+                        },
+                        "4": {
+                            "name": "entity.name.function.fennel"
+                        }
+                    },
+                    "end": "[\\)]",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.section.parens.end.fennel"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "name": "meta.function.parameters.fennel",
+                            "begin": "[\\[]",
+                            "beginCaptures": {
+                                "0": {
+                                    "name": "punctuation.section.brackets.begin.fennel"
+                                }
+                            },
+                            "end": "([\\]])\\s*",
+                            "endCaptures": {
+                                "1": {
+                                    "name": "punctuation.section.brackets.end.fennel"
+                                }
+                            },
+                            "patterns": [
+                                {
+                                    "include": "#parameters"
+                                }
+                            ]
+                        },
+                        {
+                            "include": "#expression"
+                        }
+                    ]
+                },
+                {
+                    "begin": "(\\()[\\s\\t]*((λ))[\\s\\t]+(?:((?:/|[^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\\\d#':][^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\]*))[\\s\\t]+)?",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "meta.function.lambda.fennel"
+                        },
+                        "1": {
+                            "name": "punctuation.section.parens.begin.fennel"
+                        },
+                        "2": {
+                            "name": "storage.type.function.lambda.fennel"
+                        },
+                        "3": {
+                            "name": "keyword.declaration.function.lambda.fennel"
+                        },
+                        "4": {
+                            "name": "entity.name.function.lambda.fennel"
+                        }
+                    },
+                    "end": "[\\)]",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.section.parens.end.fennel"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "name": "meta.lambda.parameters.fennel",
+                            "begin": "[\\[]",
+                            "beginCaptures": {
+                                "0": {
+                                    "name": "punctuation.section.brackets.begin.fennel"
+                                }
+                            },
+                            "end": "[\\]]",
+                            "endCaptures": {
+                                "0": {
+                                    "name": "punctuation.section.brackets.end.fennel"
+                                }
+                            },
+                            "patterns": [
+                                {
+                                    "include": "#parameters"
+                                }
+                            ]
+                        },
+                        {
+                            "include": "#expression"
+                        }
+                    ],
+                    "comment": "Expecting this to break on multiline definitions breaking after `λ` or before params.\n@TODO: Reference another grammar for how to build this without matching as much initially"
+                },
+                {
+                    "begin": "(\\()[\\s\\t]*((macro))[\\s\\t]+(?:((?:/|[^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\\\d#':][^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\]*))[\\s\\t]+)?",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "meta.macro.fennel"
+                        },
+                        "1": {
+                            "name": "punctuation.section.parens.begin.fennel"
+                        },
+                        "2": {
+                            "name": "storage.type.macro.fennel"
+                        },
+                        "3": {
+                            "name": "keyword.declaration.macro.fennel"
+                        },
+                        "4": {
+                            "name": "entity.name.macro.fennel"
+                        }
+                    },
+                    "end": "[\\)]",
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.section.parens.end.fennel"
+                        }
+                    },
+                    "patterns": [
+                        {
+                            "name": "meta.macro.parameters.fennel",
+                            "begin": "[\\[]",
+                            "beginCaptures": {
+                                "0": {
+                                    "name": "punctuation.section.brackets.begin.fennel"
+                                }
+                            },
+                            "end": "[\\]]",
+                            "endCaptures": {
+                                "0": {
+                                    "name": "punctuation.section.brackets.end.fennel"
+                                }
+                            },
+                            "patterns": [
+                                {
+                                    "include": "#parameters"
+                                }
+                            ]
+                        },
+                        {
+                            "include": "#expression"
+                        }
+                    ],
+                    "comment": "Expecting this to break on multiline definitions breaking after `λ` or before params.\n@TODO: Reference another grammar for how to build this without matching as much initially"
+                }
+            ]
+        },
+        "sexp": {
+            "patterns": [
+                {
+                    "include": "#declarations"
+                },
+                {
+                    "name": "sexp.fennel",
+                    "begin": "\\(",
+                    "end": "\\)",
+                    "beginCaptures": {
+                        "0": {
+                            "name": "punctuation.section.parens.begin.fennel"
+                        }
+                    },
+                    "endCaptures": {
+                        "0": {
+                            "name": "punctuation.section.parens.end.fennel"
+                        }
+                    },
+                    "patterns": [
                         {
                             "include": "#expression"
                         }
@@ -251,13 +457,13 @@
                             "name": "constant.language.unquote.fennel"
                         },
                         "2": {
-                            "name": "punctuation.vector.open.fennel"
+                            "name": "punctuation.section.brackets.begin.fennel"
                         }
                     },
                     "end": "\\]",
                     "endCaptures": {
                         "0": {
-                            "name": "punctuation.vector.close.fennel"
+                            "name": "punctuation.section.brackets.end.fennel"
                         }
                     },
                     "comment": "@TODO: Decide on best locations to handle capturing unquoted forms",
@@ -275,13 +481,13 @@
                             "name": "constant.language.unquote.fennel"
                         },
                         "2": {
-                            "name": "punctuation.paren.open.fennel"
+                            "name": "punctuation.section.parens.begin.fennel"
                         }
                     },
                     "end": "\\)",
                     "endCaptures": {
                         "0": {
-                            "name": "punctuation.paren.close.fennel"
+                            "name": "punctuation.section.parens.end.fennel"
                         }
                     },
                     "comment": "@TODO: Decide on best locations to handle capturing unquoted forms",
@@ -320,13 +526,13 @@
                             "name": "constant.language.quote.fennel"
                         },
                         "2": {
-                            "name": "punctuation.vector.open.fennel"
+                            "name": "punctuation.section.brackets.begin.fennel"
                         }
                     },
                     "end": "\\]",
                     "endCaptures": {
                         "0": {
-                            "name": "punctuation.vector.close.fennel"
+                            "name": "punctuation.section.brackets.end.fennel"
                         }
                     },
                     "comment": "@TODO: Decide on best locations to handle capturing unquoted forms",
@@ -350,13 +556,13 @@
                             "name": "constant.language.quote.fennel"
                         },
                         "2": {
-                            "name": "punctuation.paren.open.fennel"
+                            "name": "punctuation.section.parens.begin.fennel"
                         }
                     },
                     "end": "\\)",
                     "endCaptures": {
                         "0": {
-                            "name": "punctuation.paren.close.fennel"
+                            "name": "punctuation.section.parens.end.fennel"
                         }
                     },
                     "comment": "@TODO: Decide on best locations to handle capturing unquoted forms",
@@ -367,30 +573,6 @@
                         {
                             "include": "#unquoted"
                         },
-                        {
-                            "include": "#expression"
-                        }
-                    ]
-                }
-            ]
-        },
-        "sexp": {
-            "patterns": [
-                {
-                    "name": "sexp.fennel",
-                    "begin": "\\(",
-                    "end": "\\)",
-                    "beginCaptures": {
-                        "0": {
-                            "name": "punctuation.paren.open.fennel"
-                        }
-                    },
-                    "endCaptures": {
-                        "0": {
-                            "name": "punctuation.paren.close.fennel"
-                        }
-                    },
-                    "patterns": [
                         {
                             "include": "#expression"
                         }
@@ -424,12 +606,12 @@
             "end": "\\]",
             "beginCaptures": {
                 "0": {
-                    "name": "punctuation.vector.bracket.open.fennel"
+                    "name": "punctuation.section.brackets.begin.fennel"
                 }
             },
             "endCaptures": {
                 "0": {
-                    "name": "punctuation.vector.bracket.close.fennel"
+                    "name": "punctuation.section.brackets.end.fennel"
                 }
             },
             "patterns": [
@@ -751,22 +933,6 @@
                 }
             ]
         },
-        "string-doc": {
-            "name": "string.docstring.fennel",
-            "contentName": "meta.block.documentation.fennel",
-            "begin": "([\\\"]{3})",
-            "beginCaptures": {
-                "1": {
-                    "name": "punctuation.definition.string.docstring.begin.fennel"
-                }
-            },
-            "end": "([\\\"]{3})",
-            "endCaptures": {
-                "1": {
-                    "name": "punctuation.definition.string.docstring.end.fennel"
-                }
-            }
-        },
         "strings": {
             "patterns": [
                 {
@@ -801,18 +967,21 @@
             "patterns": [
                 {
                     "name": "entity.name.function.method.fennel",
-                    "match": "(\\w+)([:])([^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\]+[?!]?(?=[\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\]))",
+                    "match": "((\\w+)([:])([^\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\]+[?!]?(?=[\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\])))",
                     "captures": {
                         "0": {
-                            "name": "variable.function.fennel"
+                            "name": "meta.function-call.fennel"
                         },
                         "1": {
-                            "name": "variable.fennel"
+                            "name": "variable.function.fennel"
                         },
                         "2": {
-                            "name": "punctuation.method.fennel"
+                            "name": "variable.fennel"
                         },
                         "3": {
+                            "name": "punctuation.method.fennel"
+                        },
+                        "4": {
                             "name": "variable.member.fennel"
                         }
                     }
@@ -835,7 +1004,8 @@
                 },
                 {
                     "name": "entity.name.function.symbol.fennel",
-                    "match": "(?:\\w+(?:[.-]\\w+)+[?!]?)(?=[\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\])"
+                    "match": "(?<=[\\(][\\s]*)(?:\\w+(?:[.-]\\w+)+[?!]?)(?=[\\s,;\\(\\)\\[\\]\\{\\}\\\"`~@\\^\\\\])",
+                    "comment": "Workround until proper matching of first atom in sexprs added."
                 },
                 {
                     "name": "variable.parameter.special.fennel",
@@ -847,7 +1017,7 @@
                 },
                 {
                     "name": "variable.other.fennel",
-                    "match": "[^\\s\\n\\(\\)\\[\\]\\{\\}:#,\\.][^\\s\\n\\(\\)\\[\\]\\{\\}:#,]*"
+                    "match": "[^?\\s\\n\\(\\)\\[\\]\\{\\}:#,\\.][^\\s\\n\\(\\)\\[\\]\\{\\}:#,]*"
                 },
                 {
                     "name": "keyword.special.other.fennel",

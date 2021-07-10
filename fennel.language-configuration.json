@@ -36,5 +36,6 @@
      * Trying from <https://github.com/nobody-famous/alive/blob/master/language-configuration.json>
      * (thank u btw)
      */
-    "wordPattern": "[^:()# \t\n\r][^:() \t\n\r]*"
+    // "wordPattern": "[^:()#{}\\[\\] \t\n\r][^:() \t\n\r]*"
+    "wordPattern": "[:?]?[^?!\\s\\n\\(\\)\\[\\]\\{\\}:#,;`~@\\^\"\\\\][^?!\\s\\n\\(\\)\\[\\]\\{\\}:;#,`~@\\^\"\\\\]*[#?!]?"
 }
