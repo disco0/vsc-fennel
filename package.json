@@ -5,7 +5,10 @@
     "version": "0.1.5",
     "publisher": "kongeor",
     "scripts": {
-        "grammar-compile:watch": "yamltm-convert --debug --input-file ./syntaxes/fennel.tmLanguage.yaml"
+        "grammar-compile:watch": "yamltm-convert --debug --input-file ./syntaxes/fennel.tmLanguage.yaml",
+        "postinstall": "node ./scripts/build.js",
+        "compile": "tsc --build ./tsconfig.build.json",
+        "compile:watch": "yarn run compile --watch"
     },
     "engines": {
         "vscode": "^1.44.0"
@@ -13,6 +16,10 @@
     "license": "MIT",
     "categories": [
         "Programming Languages"
+    ],
+    "main": "./dist/extension.js",
+    "activationEvents": [
+        "onLanguage:fennel"
     ],
     "repository": {
         "type": "git",
@@ -38,11 +45,98 @@
                 "scopeName": "source.fennel",
                 "path": "./syntaxes/fennel.tmLanguage.json"
             }
-        ]
+        ],
+        "semanticTokenTypes": [
+            {
+                "id": "punctuation",
+                "description": "Punctuation symbols"
+            }
+        ],
+        "semanticTokenModifiers": [
+            {
+                "id": "optional",
+                "description": "Annotates a (parameter) symbol that may not be defined"
+            }
+        ],
+        "semanticTokenScopes": [
+            {
+                "scopes": {
+                    "punctuation": [
+                        "punctuation"
+                    ],
+                    "type.modification": [
+                        "storage.modifier"
+                    ]
+                }
+            }
+        ],
+        "configuration": {
+            "title": "Fennel Language Extension Configuration",
+            "properties": {
+                "fennel.semantic": {
+                    "description": "Enable fennel semantic highlighting",
+                    "type": "boolean",
+                    "default": true
+                },
+                "fennel.semantic.highlightComment": {
+                    "description": "Enable semantic highlighting of fennel source comments",
+                    "type": "boolean",
+                    "default": true
+                },
+                "fennel.semantic.highlightTerms": {
+                    "description": "Enabled terms",
+                    "type": "array",
+                    "default": [
+                        "type",
+                        "scope",
+                        "function",
+                        "function-definition",
+                        "docstring",
+                        "variable",
+                        "number",
+                        "string",
+                        "comment",
+                        "parameter",
+                        "constant",
+                        "directive",
+                        "control",
+                        "operator",
+                        "modifier",
+                        "punctuation"
+                    ]
+                },
+                "fennel.semantic.debugHover": {
+                    "description": "Show tool-tip with syntax scope on hover",
+                    "type": "boolean",
+                    "default": false
+                },
+                "fennel.semantic.debugDepth": {
+                    "description": "Depth of syntax scope in debug tools",
+                    "type": "integer",
+                    "default": -1
+                }
+            }
+        }
     },
     "devDependencies": {
+        "@tsconfig/node14": "^1.0.0",
+        "@types/debug": "^4.1.5",
+        "@types/js-yaml": "^4.0.1",
+        "@types/node": "14",
+        "@types/plist": "^3.0.2",
+        "@types/vscode": "^1.57.0",
+        "@types/yargs": "^17.0.0",
+        "tree-sitter": "^0.19.0",
+        "tsdef": "^0.0.14",
+        "vscode-tmgrammar-test": "^0.0.11"
     },
     "dependencies": {
+        "fast-memoize": "^2.5.2",
+        "helpful-decorators": "^2.1.0",
+        "jsonc-parser": "^3.0.0",
+        "jsonc-require": "^1.0.1",
+        "tree-sitter-fennel": "github:disco0/tree-sitter-fennel",
+        "web-tree-sitter": "^0.19.4",
         "yaml-tm-convert": "github:disco0/yaml-tmLanguage-convert"
     }
 }
